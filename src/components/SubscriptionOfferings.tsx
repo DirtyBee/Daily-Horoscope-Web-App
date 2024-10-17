@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import axios from 'axios';
+import { useCart } from '../contexts/CartContext';
+import { Check, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SubscriptionPlan {
   id: string;
@@ -31,51 +32,23 @@ const subscriptionPlans: SubscriptionPlan[] = [
 ];
 
 const SubscriptionOfferings: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const { addToCart, cart } = useCart();
+  const [addedToCart, setAddedToCart] = useState<{ [key: string]: boolean }>({});
 
-  const stripe = useStripe();
-  const elements = useElements();
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!stripe || !elements || !selectedPlan) {
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: elements.getElement(CardElement)!,
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // In a real application, you would send this to your backend
-      const response = await axios.post('/api/create-subscription', {
-        paymentMethodId: paymentMethod.id,
-        planId: selectedPlan.id,
-      });
-
-      if (response.data.success) {
-        setSuccess(true);
-      } else {
-        throw new Error('Subscription failed. Please try again.');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setLoading(false);
-    }
+  const handleAddToCart = (plan: SubscriptionPlan) => {
+    addToCart({
+      id: parseInt(plan.id),
+      name: `${plan.name} Subscription`,
+      price: plan.price,
+      quantity: 1
+    });
+    setAddedToCart(prev => ({ ...prev, [plan.id]: true }));
+    setTimeout(() => {
+      setAddedToCart(prev => ({ ...prev, [plan.id]: false }));
+    }, 2000);
   };
+
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <div className="bg-white bg-opacity-10 p-6 rounded-lg shadow-lg text-white">
@@ -91,48 +64,34 @@ const SubscriptionOfferings: React.FC = () => {
               ))}
             </ul>
             <button
-              onClick={() => setSelectedPlan(plan)}
-              className="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition duration-300"
+              onClick={() => handleAddToCart(plan)}
+              className="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition duration-300 flex items-center justify-center"
+              disabled={addedToCart[plan.id]}
             >
-              Select Plan
+              {addedToCart[plan.id] ? (
+                <>
+                  <Check size={18} className="mr-2" />
+                  Added to Cart
+                </>
+              ) : (
+                'Add to Cart'
+              )}
             </button>
           </div>
         ))}
       </div>
-
-      {selectedPlan && (
-        <form onSubmit={handleSubmit} className="mt-8">
-          <h3 className="text-xl font-semibold mb-4">Subscribe to {selectedPlan.name} Plan</h3>
-          <div className="mb-4">
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: '16px',
-                    color: '#ffffff',
-                    '::placeholder': {
-                      color: '#aab7c4',
-                    },
-                  },
-                  invalid: {
-                    color: '#9e2146',
-                  },
-                },
-              }}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={!stripe || loading}
-            className="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition duration-300 disabled:opacity-50"
-          >
-            {loading ? 'Processing...' : `Subscribe for $${selectedPlan.price}/month`}
-          </button>
-        </form>
-      )}
-
-      {error && <p className="mt-4 text-red-400">{error}</p>}
-      {success && <p className="mt-4 text-green-400">Subscription successful! Welcome to your new plan.</p>}
+      
+      <Link
+        to="/checkout"
+        className="fixed bottom-4 right-4 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 z-50"
+      >
+        <ShoppingCart size={24} />
+        {cartItemCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+            {cartItemCount}
+          </span>
+        )}
+      </Link>
     </div>
   );
 };
