@@ -33,11 +33,14 @@ const AstrologyQuiz: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
 
   const handleAnswer = (answer: string) => {
-    if (answer === questions[currentQuestion].correctAnswer) {
+    const isCorrect = answer === questions[currentQuestion].correctAnswer;
+    if (isCorrect) {
       setScore(score + 1);
     }
+    setUserAnswers([...userAnswers, answer]);
 
     const nextQuestion = currentQuestion + 1;
     if (nextQuestion < questions.length) {
@@ -51,6 +54,7 @@ const AstrologyQuiz: React.FC = () => {
     setCurrentQuestion(0);
     setScore(0);
     setShowResult(false);
+    setUserAnswers([]);
   };
 
   return (
@@ -59,6 +63,17 @@ const AstrologyQuiz: React.FC = () => {
       {showResult ? (
         <div className="text-center">
           <h4 className="text-2xl font-semibold text-indigo-300 mb-4">Your Score: {score} / {questions.length}</h4>
+          <div className="mb-6">
+            {questions.map((question, index) => (
+              <div key={question.id} className="mb-4">
+                <p className="text-white font-semibold">{question.text}</p>
+                <p className="text-green-400">Correct Answer: {question.correctAnswer}</p>
+                <p className={`${userAnswers[index] === question.correctAnswer ? 'text-green-400' : 'text-red-400'}`}>
+                  Your Answer: {userAnswers[index]}
+                </p>
+              </div>
+            ))}
+          </div>
           <button
             onClick={restartQuiz}
             className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-300"

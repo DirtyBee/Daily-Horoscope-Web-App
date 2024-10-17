@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Sun, Moon, Star } from 'lucide-react';
 
 interface HoroscopeData {
@@ -12,17 +11,28 @@ interface HoroscopeData {
   compatibleSigns: string[];
 }
 
+const mockHoroscopeData: HoroscopeData = {
+  sunSign: "Aries",
+  moonSign: "Taurus",
+  risingSign: "Gemini",
+  dailyHoroscope: "Today is a day of new beginnings. Your energy is high, and you're ready to take on new challenges. Trust your instincts and don't be afraid to take the lead in projects or relationships.",
+  weeklyForecast: "This week brings opportunities for growth in your career. You may face some obstacles, but your determination will see you through. Pay attention to your relationships, as there might be some tension that needs addressing.",
+  luckyNumbers: [3, 7, 12, 18, 24],
+  compatibleSigns: ["Leo", "Sagittarius", "Gemini"]
+};
+
 const PersonalizedHoroscope: React.FC = () => {
   const [horoscope, setHoroscope] = useState<HoroscopeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Simulating an API call
     const fetchHoroscope = async () => {
       try {
         // In a real application, you would fetch this data from your backend
-        const response = await axios.get('/api/personalized-horoscope');
-        setHoroscope(response.data);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+        setHoroscope(mockHoroscopeData);
       } catch (err) {
         setError('Failed to load horoscope data');
       } finally {

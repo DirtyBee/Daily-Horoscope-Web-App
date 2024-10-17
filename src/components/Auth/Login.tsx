@@ -3,10 +3,10 @@ import { User, Lock } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (email: string, password: string) => void;
-  onSwitchToRegister: () => void;
+  onClose: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -51,12 +51,6 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           Login
         </button>
       </form>
-      <p className="mt-4 text-center">
-        Don't have an account?{' '}
-        <button onClick={onSwitchToRegister} className="text-indigo-300 hover:underline">
-          Register here
-        </button>
-      </p>
     </div>
   );
 };
